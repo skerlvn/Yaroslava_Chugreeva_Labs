@@ -13,12 +13,12 @@ class Program
 
             double[] vector = new double[N];
             string[] vectorData = lines[1].Split(' ');
+
             for (int i = 0; i < N; i++)
             {
                 vector[i] = double.Parse(vectorData[i]);
             }
 
-            // Чтение матрицы G
             double[,] matrix = new double[N, N];
             for (int i = 0; i < N; i++)
             {
