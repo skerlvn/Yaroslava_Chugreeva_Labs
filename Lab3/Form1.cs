@@ -13,7 +13,6 @@ namespace Lab3
 {
     public partial class Form1 : Form
     {
-        // Поля для хранения массивов
         private List<int[]> testArrays;
         private volatile Dictionary<string, List<double>> sortResults;
         public Form1()
@@ -71,42 +70,38 @@ namespace Lab3
 
         private async void RunSortingTestsWithResult(Action<int[]> sortMethod, string sortName)
         {
-            // Список для хранения времени выполнения
             var times = new List<double>();
 
-            // Параметры для многократного запуска
-            int numRuns = 20; // 20 запусков для каждого теста
+            int numRuns = 5; // 20 запусков для каждого теста
             int[] sizes = testArrays.Select(arr => arr.Length).ToArray();
 
             foreach (int[] array in testArrays)
             {
                 double totalTime = 0;
 
-            
-                Parallel.For(0, numRuns, run=>
+                
+                Parallel.For(0, numRuns, run =>
                 {
-                    // Клонируем массив перед каждым запуском
+
                     int[] arrayCopy = (int[])array.Clone();
 
-                    // Измерение времени
                     Stopwatch stopwatch = Stopwatch.StartNew();
                     sortMethod(arrayCopy);
                     stopwatch.Stop();
 
                     totalTime += stopwatch.ElapsedMilliseconds;
-                });
+                }
+                
+                );
                 
 
-                // Среднее время
                 double avgTime = totalTime / numRuns;
                 times.Add(avgTime);
             }
-            //lock(sortResults)
             sortResults[sortName] = times;
 
         }
 
-        // График
         private void DisplayGraph(Dictionary<string, List<double>> sortResults)
         {
             var pane = zedGraphControl.GraphPane;
@@ -115,10 +110,8 @@ namespace Lab3
             pane.XAxis.Title.Text = "Размер массива";
             pane.YAxis.Title.Text = "Среднее время (мс)";
 
-            // Размеры массивов для тестирования
             var sizes = testArrays.Select(arr => (double)arr.Length).ToArray();
 
-            // Цвета для графиков
             var colors = new Color[] 
             { 
                 Color.Red, 
@@ -142,7 +135,6 @@ namespace Lab3
             zedGraphControl.Invalidate();
         }
 
-        // Кнопка для генерации массивов
         private void buttonGenerateArrays_Click(object sender, EventArgs e)
         {
             int selectedGroupIndex = comboBoxDataGroup.SelectedIndex;
@@ -187,7 +179,6 @@ namespace Lab3
                 {
                     writer.WriteLine("Результаты сортировки:");
 
-                    // Сохраняем сгенерированные массивы
                     writer.WriteLine("Сгенерированные массивы:");
                     for (int i = 0; i < testArrays.Count; i++)
                     {
@@ -196,7 +187,6 @@ namespace Lab3
 
                     writer.WriteLine();
 
-                    // Выполняем сортировки и сохраняем результаты для каждого алгоритма
                     int selectedGroupIndex = comboBoxSortGroup.SelectedIndex;
 
                     switch (selectedGroupIndex)
@@ -238,14 +228,13 @@ namespace Lab3
             for (int i = 0; i < testArrays.Count; i++)
             {
                 int[] arrayCopy = (int[])testArrays[i].Clone();
-                sortMethod(arrayCopy);  // Сортировка массива
+                sortMethod(arrayCopy);  
 
                 writer.WriteLine($"Отсортированный массив {i + 1}: {string.Join(", ", arrayCopy)}");
             }
 
             writer.WriteLine();
         }
-        // Генерация случайных массивов
         private int[] GetArraySizesToAlgorithm()
         {
             int selectedGroupIndex = comboBoxSortGroup.SelectedIndex;
@@ -273,7 +262,6 @@ namespace Lab3
             }
         }
 
-        // Генерация частично отсортированных массивов
         private void GeneratePartiallySortedArrays()
         {
             int[] sizes = GetArraySizesToAlgorithm();
@@ -301,7 +289,6 @@ namespace Lab3
             }
         }
 
-        // Генерация почти отсортированных массивов с перестановками
         private void GenerateNearlySortedArrays()
         {
             int[] sizes = GetArraySizesToAlgorithm();
@@ -323,7 +310,6 @@ namespace Lab3
             }
         }
 
-        // Генерация отсортированных массивов с изменениями
         private void GenerateModifiedSortedArrays()
         {
             int[] sizes = GetArraySizesToAlgorithm();

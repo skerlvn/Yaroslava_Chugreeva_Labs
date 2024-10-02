@@ -8,7 +8,6 @@ namespace Lab3
 {
     public static class SortingAlgorithms
     {
-        // 1. Сортировка пузырьком (Bubble sort)
         public static void BubbleSort(int[] array)
         {
             int n = array.Length;
@@ -24,7 +23,6 @@ namespace Lab3
             }
         }
 
-        // 2. Шейкерная сортировка (Shaker sort)
         public static void ShakerSort(int[] array)
         {
             int left = 0;
@@ -55,7 +53,6 @@ namespace Lab3
             }
         }
 
-        // 3. Сортировка расчёской (Comb sort)
         public static void CombSort(int[] array)
         {
             int gap = array.Length;
@@ -81,7 +78,6 @@ namespace Lab3
             }
         }
 
-        // 4. Сортировка вставками (Insertion sort)
         public static void InsertionSort(int[] array)
         {
             for (int i = 1; i < array.Length; i++)
@@ -98,7 +94,6 @@ namespace Lab3
             }
         }
 
-        // 5. Сортировка Шелла (Shellsort)
         public static void ShellSort(int[] array)
         {
             int n = array.Length;
@@ -120,29 +115,23 @@ namespace Lab3
                 gap /= 2;
             }
         }
-        // Реализация Tree Sort
         public static void TreeSort(int[] array)
         {
             if (array.Length == 0) return;
 
-            // Строим бинарное дерево
             BinaryTree tree = new BinaryTree();
             foreach (var value in array)
             {
                 tree.Insert(value);
             }
 
-            // Извлекаем элементы через итеративный in-order обход
             var sortedList = tree.IterativeInOrderTraversal();
 
-            // Копируем отсортированные элементы обратно в массив
             for (int i = 0; i < array.Length; i++)
             {
                 array[i] = sortedList[i];
             }
         }
-
-        // Класс бинарного дерева поиска
         private class BinaryTree
         {
             private Node root;
@@ -160,8 +149,6 @@ namespace Lab3
                     Right = null;
                 }
             }
-
-            // Итеративная вставка элемента
             public void Insert(int value)
             {
                 Node newNode = new Node(value);
@@ -197,7 +184,6 @@ namespace Lab3
                 }
             }
 
-            // Итеративный in-order обход дерева
             public List<int> IterativeInOrderTraversal()
             {
                 List<int> result = new List<int>();
@@ -206,18 +192,15 @@ namespace Lab3
 
                 while (current != null || stack.Count > 0)
                 {
-                    // Движемся по левым узлам
                     while (current != null)
                     {
                         stack.Push(current);
                         current = current.Left;
                     }
 
-                    // Достаем элемент из стека
                     current = stack.Pop();
-                    result.Add(current.Value); // Обрабатываем узел
+                    result.Add(current.Value); 
 
-                    // Переходим к правым узлам
                     current = current.Right;
                 }
 
@@ -226,7 +209,6 @@ namespace Lab3
         }
 
 
-        // 7. Гномья сортировка (Gnome sort)
         public static void GnomeSort(int[] array)
         {
             int i = 1;
@@ -251,7 +233,6 @@ namespace Lab3
             }
         }
 
-        // 8. Сортировка выбором (Selection sort)
         public static void SelectionSort(int[] array)
         {
             int n = array.Length;
@@ -269,7 +250,6 @@ namespace Lab3
             }
         }
 
-        // Вспомогательный метод для обмена элементов
         private static void Swap(ref int a, ref int b)
         {
             int temp = a;
@@ -281,89 +261,87 @@ namespace Lab3
         {
             int n = array.Length;
 
-            // Построение кучи (max heap)
             for (int i = n / 2 - 1; i >= 0; i--)
                 Heapify(array, n, i);
 
-            // Один за другим извлекаем элементы из кучи
             for (int i = n - 1; i >= 0; i--)
             {
-                // Перемещаем текущий корень в конец
                 int temp = array[0];
                 array[0] = array[i];
                 array[i] = temp;
 
-                // Вызываем процедуру для уменьшенной кучи
                 Heapify(array, i, 0);
             }
         }
 
         private static void Heapify(int[] array, int n, int i)
         {
-            int largest = i; // Инициализируем корень как наибольший
-            int left = 2 * i + 1; // левый = 2*i + 1
-            int right = 2 * i + 2; // правый = 2*i + 2
+            int largest = i; 
+            int left = 2 * i + 1; 
+            int right = 2 * i + 2; 
 
-            // Если левый дочерний элемент больше корня
             if (left < n && array[left] > array[largest])
                 largest = left;
 
-            // Если правый дочерний элемент больше, чем наибольший элемент на данный момент
             if (right < n && array[right] > array[largest])
                 largest = right;
 
-            // Если наибольший элемент не корень
             if (largest != i)
             {
                 int swap = array[i];
                 array[i] = array[largest];
                 array[largest] = swap;
 
-                // Рекурсивно преобразуем затронутое поддерево
                 Heapify(array, n, largest);
             }
         }
-        // Итеративная версия QuickSort
-        public static void QuickSort(int[] array)
+        //метод возвращающий индекс опорного элемента
+        public static void QuickSort(int[] array, int left, int right)
         {
-            if (array.Length == 0) return;
-
-            Stack<(int, int)> stack = new Stack<(int, int)>();
-            stack.Push((0, array.Length - 1));
-
-            while (stack.Count > 0)
+            while (left < right)
             {
-                var (low, high) = stack.Pop();
+                int pivotIndex = Partition(array, left, right);
 
-                if (low < high)
+                if (pivotIndex - left < right - pivotIndex)
                 {
-                    // Разделяем массив и получаем индекс опорного элемента
-                    int pivotIndex = Partition(array, low, high);
-
-                    // Кладём в стек подмассивы для дальнейшей сортировки
-                    stack.Push((low, pivotIndex - 1)); // Левая часть
-                    stack.Push((pivotIndex + 1, high)); // Правая часть
+                    QuickSort(array, left, pivotIndex - 1);
+                    left = pivotIndex + 1;
+                }
+                else
+                {
+                    QuickSort(array, pivotIndex + 1, right);
+                    right = pivotIndex - 1;
                 }
             }
         }
-
-        private static int Partition(int[] array, int low, int high)
+        static int Partition(int[] array, int left, int right)
         {
-            int pivot = array[high];
-            int i = low - 1;
+            int pivot = array[right];
+            int i = left - 1;
 
-            for (int j = low; j < high; j++)
+            for (int j = left; j < right; j++)
             {
                 if (array[j] <= pivot)
                 {
                     i++;
-                    Swap(ref array[i], ref array[j]);
+                    int temp = array[i];
+                    array[i] = array[j];
+                    array[j] = temp;
                 }
             }
 
-            Swap(ref array[i + 1], ref array[high]);
+            int temp1 = array[i + 1];
+            array[i + 1] = array[right];
+            array[right] = temp1;
+
             return i + 1;
         }
+
+        public static void QuickSort(int[] array)
+        {
+            QuickSort(array, 0, array.Length - 1);
+        }
+
 
         public static void MergeSort(int[] array)
         {
@@ -416,23 +394,18 @@ namespace Lab3
             int[] count = new int[range];
             int[] output = new int[array.Length];
 
-            // Подсчёт вхождений элементов
             for (int i = 0; i < array.Length; i++)
                 count[array[i] - min]++;
 
-            // Изменение count[i] так, чтобы count[i] содержал
-            // фактическую позицию элемента в выходном массиве
             for (int i = 1; i < count.Length; i++)
                 count[i] += count[i - 1];
 
-            // Построение выходного массива
             for (int i = array.Length - 1; i >= 0; i--)
             {
                 output[count[array[i] - min] - 1] = array[i];
                 count[array[i] - min]--;
             }
 
-            // Копируем отсортированные элементы в исходный массив
             Array.Copy(output, array, array.Length);
         }
         public static void RadixSort(int[] array)
@@ -447,25 +420,20 @@ namespace Lab3
         {
             int n = array.Length;
             int[] output = new int[n];
-            int[] count = new int[10]; // Десятичные цифры
+            int[] count = new int[10]; 
 
-            // Подсчёт вхождений элементов
             for (int i = 0; i < n; i++)
                 count[(array[i] / exp) % 10]++;
 
-            // Изменение count[i] так, чтобы count[i] содержал
-            // фактическую позицию элемента в выходном массиве
             for (int i = 1; i < 10; i++)
                 count[i] += count[i - 1];
 
-            // Построение выходного массива
             for (int i = n - 1; i >= 0; i--)
             {
                 output[count[(array[i] / exp) % 10] - 1] = array[i];
                 count[(array[i] / exp) % 10]--;
             }
 
-            // Копируем отсортированные элементы в исходный массив
             Array.Copy(output, array, n);
         }
         public static void BitonicSort(int[] array)
@@ -479,12 +447,9 @@ namespace Lab3
             {
                 int k = cnt / 2;
 
-                // Сортируем в возрастающем порядке
                 BitonicSort(array, low, k, true);
-                // Сортируем в порядке убывания
                 BitonicSort(array, low + k, cnt - k, false);
 
-                // Объединяем битонные последовательности
                 BitonicMerge(array, low, cnt, dir);
             }
         }
