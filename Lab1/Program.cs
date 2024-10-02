@@ -33,7 +33,7 @@ class Program
             {
                 Console.WriteLine("Матрица G не является симметричной.");
             }
-            else if (matrix.GetLength(0) != N)
+            else if (matrix.GetLength(0) != N || matrix.GetLength(1) != N)
             {
                 Console.WriteLine("Матрица не является совместимой для вектора X");
             }
