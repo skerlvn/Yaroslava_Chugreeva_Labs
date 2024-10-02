@@ -1,12 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ZedGraph;
@@ -17,48 +15,50 @@ namespace Lab3
     {
         // Поля для хранения массивов
         private List<int[]> testArrays;
+        private volatile Dictionary<string, List<double>> sortResults;
         public Form1()
         {
             InitializeComponent();
         }
 
-        private void buttonRunTests_Click(object sender, EventArgs e)
+        private async void buttonRunTests_Click(object sender, EventArgs e)
         {
             if (testArrays == null || testArrays.Count == 0)
             {
                 MessageBox.Show("Сначала сгенерируйте массивы.");
                 return;
             }
-            var sortResults = new Dictionary<string, List<long>>();
+            sortResults = new Dictionary<string, List<double>>();
 
             int selectedGroupIndex = comboBoxSortGroup.SelectedIndex;
+     
 
             switch (selectedGroupIndex)
             {
                 case 0:
                     Parallel.Invoke(
-                        () => RunSortingTestsWithResult(SortingAlgorithms.BubbleSort, "Bubble Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.ShakerSort, "Shaker Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.GnomeSort, "Gnome Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.SelectionSort, "Selection Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.InsertionSort, "Insertion Sort", sortResults)
+                        () => RunSortingTestsWithResult(SortingAlgorithms.BubbleSort, "Bubble Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.ShakerSort, "Shaker Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.GnomeSort, "Gnome Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.SelectionSort, "Selection Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.InsertionSort, "Insertion Sort")
                     );
                     break;
                 case 1:
                     Parallel.Invoke(
-                        () => RunSortingTestsWithResult(SortingAlgorithms.ShellSort, "Shell Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.TreeSort, "Tree Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.BitonicSort, "Bitonic Sort", sortResults)
+                        () => RunSortingTestsWithResult(SortingAlgorithms.ShellSort, "Shell Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.TreeSort, "Tree Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.BitonicSort, "Bitonic Sort")
                     );
                     break;
                 case 2:
                     Parallel.Invoke(
-                        () => RunSortingTestsWithResult(SortingAlgorithms.CombSort, "Comb Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.HeapSort, "Heap Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.QuickSort, "Quick Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.MergeSort, "Merge Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.CountingSort, "Counting Sort", sortResults),
-                        () => RunSortingTestsWithResult(SortingAlgorithms.RadixSort, "Radix Sort", sortResults)
+                        () => RunSortingTestsWithResult(SortingAlgorithms.CombSort, "Comb Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.HeapSort, "Heap Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.QuickSort, "Quick Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.MergeSort, "Merge Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.CountingSort, "Counting Sort"),
+                        () => RunSortingTestsWithResult(SortingAlgorithms.RadixSort, "Radix Sort")
                     );
                     break;
                 default:
@@ -67,102 +67,84 @@ namespace Lab3
             }
 
             DisplayGraph(sortResults);
+        }
+
+        private async void RunSortingTestsWithResult(Action<int[]> sortMethod, string sortName)
+        {
+            // Список для хранения времени выполнения
+            var times = new List<double>();
+
+            // Параметры для многократного запуска
+            int numRuns = 20; // 20 запусков для каждого теста
+            int[] sizes = testArrays.Select(arr => arr.Length).ToArray();
+
+            foreach (int[] array in testArrays)
+            {
+                double totalTime = 0;
+
+            
+                Parallel.For(0, numRuns, run=>
+                {
+                    // Клонируем массив перед каждым запуском
+                    int[] arrayCopy = (int[])array.Clone();
+
+                    // Измерение времени
+                    Stopwatch stopwatch = Stopwatch.StartNew();
+                    sortMethod(arrayCopy);
+                    stopwatch.Stop();
+
+                    totalTime += stopwatch.ElapsedMilliseconds;
+                });
+                
+
+                // Среднее время
+                double avgTime = totalTime / numRuns;
+                times.Add(avgTime);
+            }
+            //lock(sortResults)
+            sortResults[sortName] = times;
 
         }
 
-        private void DisplayGraph(Dictionary<string, List<long>> sortResults)
+        // График
+        private void DisplayGraph(Dictionary<string, List<double>> sortResults)
         {
             var pane = zedGraphControl.GraphPane;
             pane.CurveList.Clear();
             pane.Title.Text = "Сравнение эффективности алгоритмов сортировки";
             pane.XAxis.Title.Text = "Размер массива";
-            pane.YAxis.Title.Text = "Время (мс)";
+            pane.YAxis.Title.Text = "Среднее время (мс)";
 
             // Размеры массивов для тестирования
-            var sizes = new double[] { 10, 100, 1000, 10000, 100000, 1000000 };
+            var sizes = testArrays.Select(arr => (double)arr.Length).ToArray();
 
-            // Массив цветов для линий графика
-            var colors = new Color[]
-            {
-                Color.Red,
-                Color.Blue,
-                Color.Green,
-                Color.Purple,
+            // Цвета для графиков
+            var colors = new Color[] 
+            { 
+                Color.Red, 
+                Color.Blue, 
+                Color.Green, 
+                Color.Purple, 
                 Color.Orange,
-                Color.Brown,
-                Color.Pink,
-                Color.Yellow
+                Color.Black,
             };
 
             int colorIndex = 0;
 
             foreach (var sortResult in sortResults)
             {
-                var times = sortResult.Value.Select(v => (double)v).ToArray();
-
-                // Добавление кривой с уникальным цветом
-                var curve = pane.AddCurve(sortResult.Key, sizes, times, colors[colorIndex % colors.Length]);
-
-                // Настройка кривой
-                curve.Symbol.Type = SymbolType.Circle; // Знак на кривой
-                curve.Line.Width = 2; // Толщина линии
-
-                colorIndex++;
+                var curve = pane.AddCurve(sortResult.Key, sizes, sortResult.Value.ToArray(), colors[colorIndex++ % colors.Length]);
+                curve.Symbol.Type = SymbolType.Circle;
+                curve.Line.Width = 2;
             }
-
-            // Добавление легенды
-            pane.Legend.IsVisible = true;
-            pane.Legend.Position = LegendPos.InsideTopRight; // Позиция легенды
 
             zedGraphControl.AxisChange();
             zedGraphControl.Invalidate();
         }
 
-        private void buttonSaveResults_Click(object sender, EventArgs e)
-        {
-            // Открываем диалог для сохранения файла
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "Text Files|*.txt";
-            saveFileDialog.Title = "Сохранить результаты";
-
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                // Вызываем метод для сохранения массивов в файл
-                SaveResultsToFile(saveFileDialog.FileName);
-            }
-        }
-        private void SaveResultsToFile(string fileName)
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(fileName))
-                {
-                    // Проходим по сгенерированным массивам
-                    for (int i = 0; i < testArrays.Count; i++)
-                    {
-                        writer.WriteLine($"Массив {i + 1} (Размер: {testArrays[i].Length}):");
-                        writer.WriteLine(string.Join(", ", testArrays[i]));
-                        writer.WriteLine(); // Пустая строка для разделения массивов
-
-                        // Если массив был отсортирован, можно добавить результаты сортировки
-                        writer.WriteLine($"Отсортированный массив {i + 1}:");
-                        int[] sortedArray = (int[])testArrays[i].Clone(); // Клонируем массив перед сортировкой
-                        SortingAlgorithms.QuickSort(sortedArray); // Пример сортировки, замените на нужную
-                        writer.WriteLine(string.Join(", ", sortedArray));
-                        writer.WriteLine(); // Пустая строка для разделения результатов
-                    }
-                }
-                MessageBox.Show("Результаты успешно сохранены!", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка при сохранении файла: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
+        // Кнопка для генерации массивов
         private void buttonGenerateArrays_Click(object sender, EventArgs e)
         {
-            // Генерация массивов в зависимости от выбранной группы
             int selectedGroupIndex = comboBoxDataGroup.SelectedIndex;
             testArrays = new List<int[]>();
 
@@ -181,17 +163,103 @@ namespace Lab3
                     GenerateModifiedSortedArrays();
                     break;
                 default:
-                    MessageBox.Show("Пожалуйста, выберите группу тестовых данных.");
+                    MessageBox.Show("Выберите группу тестовых данных.");
                     return;
             }
 
             MessageBox.Show("Массивы сгенерированы.");
         }
+        private void buttonSaveResults_Click(object sender, EventArgs e)
+        {
+            if (testArrays == null || testArrays.Count == 0)
+            {
+                MessageBox.Show("Сначала сгенерируйте массивы.");
+                return;
+            }
 
-        // Метод для генерации случайных массивов
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
+            saveFileDialog.Title = "Сохранить результаты";
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                using (StreamWriter writer = new StreamWriter(saveFileDialog.FileName))
+                {
+                    writer.WriteLine("Результаты сортировки:");
+
+                    // Сохраняем сгенерированные массивы
+                    writer.WriteLine("Сгенерированные массивы:");
+                    for (int i = 0; i < testArrays.Count; i++)
+                    {
+                        writer.WriteLine($"Массив {i + 1}: {string.Join(", ", testArrays[i])}");
+                    }
+
+                    writer.WriteLine();
+
+                    // Выполняем сортировки и сохраняем результаты для каждого алгоритма
+                    int selectedGroupIndex = comboBoxSortGroup.SelectedIndex;
+
+                    switch (selectedGroupIndex)
+                    {
+                        case 0:
+                            SaveSortedArray(SortingAlgorithms.BubbleSort, "Bubble Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.ShakerSort, "Shaker Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.GnomeSort, "Gnome Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.SelectionSort, "Selection Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.InsertionSort, "Insertion Sort", writer);
+                            break;
+                        case 1:
+                            SaveSortedArray(SortingAlgorithms.ShellSort, "Shell Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.TreeSort, "Tree Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.BitonicSort, "Bitonic Sort", writer);
+                            break;
+                        case 2:
+                            SaveSortedArray(SortingAlgorithms.CombSort, "Comb Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.HeapSort, "Heap Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.QuickSort, "Quick Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.MergeSort, "Merge Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.CountingSort, "Counting Sort", writer);
+                            SaveSortedArray(SortingAlgorithms.RadixSort, "Radix Sort", writer);
+                            break;
+                        default:
+                            MessageBox.Show("Выберите группу алгоритмов для сортировки.");
+                            break;
+                    }
+
+                    MessageBox.Show("Результаты успешно сохранены.");
+                }
+            }
+        }
+
+        private void SaveSortedArray(Action<int[]> sortMethod, string sortName, StreamWriter writer)
+        {
+            writer.WriteLine($"Результаты для {sortName}:");
+
+            for (int i = 0; i < testArrays.Count; i++)
+            {
+                int[] arrayCopy = (int[])testArrays[i].Clone();
+                sortMethod(arrayCopy);  // Сортировка массива
+
+                writer.WriteLine($"Отсортированный массив {i + 1}: {string.Join(", ", arrayCopy)}");
+            }
+
+            writer.WriteLine();
+        }
+        // Генерация случайных массивов
+        private int[] GetArraySizesToAlgorithm()
+        {
+            int selectedGroupIndex = comboBoxSortGroup.SelectedIndex;
+
+            var sizes = new List<int>();
+            for (int i = 1; i <= 4 + selectedGroupIndex; i++)
+                sizes.Add((int)Math.Pow(10.0, i));
+
+            return sizes.ToArray();
+            
+        }
         private void GenerateRandomArrays()
-        {   
-            int[] sizes = { 10, 100, 1000, 10000, 100000 };
+        {
+            int[] sizes = GetArraySizesToAlgorithm();
             Random rand = new Random();
 
             foreach (int size in sizes)
@@ -199,50 +267,44 @@ namespace Lab3
                 int[] array = new int[size];
                 for (int i = 0; i < size; i++)
                 {
-                    array[i] = rand.Next(0, 1000); // числа от 0 до 1000
+                    array[i] = rand.Next(0, 1000);
                 }
                 testArrays.Add(array);
             }
         }
 
-        // Метод для генерации массивов, разбитых на подмассивы
+        // Генерация частично отсортированных массивов
         private void GeneratePartiallySortedArrays()
         {
-            int[] sizes = { 10, 100, 1000, 10000, 100000 };
+            int[] sizes = GetArraySizesToAlgorithm();
             Random rand = new Random();
 
             foreach (int size in sizes)
             {
                 int[] array = new int[size];
-
-                // Заполнение массива случайными числами
                 for (int i = 0; i < size; i++)
                 {
                     array[i] = rand.Next(0, 1000);
                 }
 
-                // Разбиение массива на несколько отсортированных подмассивов
-                int subArrayCount = rand.Next(1, 6); // Количество подмассивов (от 1 до 5)
-                int elementsPerSubArray = size / subArrayCount; // Среднее количество элементов в подмассиве
-                int lastSubArraySize = size - elementsPerSubArray * (subArrayCount - 1); // Размер последнего подмассива
+                // Разбиваем на подмассивы и сортируем их
+                int subArrayCount = rand.Next(1, 6);
+                int subArraySize = size / subArrayCount;
 
-                // Сортировка подмассивов случайного размера
                 for (int i = 0; i < subArrayCount; i++)
                 {
-                    int startIndex = i * elementsPerSubArray;
-                    int currentSubArraySize = (i == subArrayCount - 1) ? lastSubArraySize : elementsPerSubArray; // Обработка последнего подмассива
-
-                    Array.Sort(array, startIndex, currentSubArraySize);
+                    int startIndex = i * subArraySize;
+                    Array.Sort(array, startIndex, subArraySize);
                 }
 
                 testArrays.Add(array);
             }
         }
 
-        // Метод для генерации отсортированных массивов с перестановками
+        // Генерация почти отсортированных массивов с перестановками
         private void GenerateNearlySortedArrays()
         {
-            int[] sizes = { 10, 100, 1000, 10000, 100000 };
+            int[] sizes = GetArraySizesToAlgorithm();
             Random rand = new Random();
 
             foreach (int size in sizes)
@@ -261,73 +323,24 @@ namespace Lab3
             }
         }
 
-        // Метод для генерации отсортированных массивов с заменёнными элементами
+        // Генерация отсортированных массивов с изменениями
         private void GenerateModifiedSortedArrays()
         {
-            int[] sizes = { 10, 100, 1000, 10000, 100000 };
+            int[] sizes = GetArraySizesToAlgorithm();
             Random rand = new Random();
 
             foreach (int size in sizes)
             {
                 int[] array = Enumerable.Range(0, size).ToArray();
+                int modifications = rand.Next(1, size / 5);
 
-                // Заменяем несколько случайных элементов
-                int replacements = rand.Next(size / 10, size / 2);
-
-                for (int i = 0; i < replacements; i++)
+                for (int i = 0; i < modifications; i++)
                 {
                     int index = rand.Next(0, size);
                     array[index] = rand.Next(0, 1000);
                 }
 
                 testArrays.Add(array);
-            }
-        }
-
-        private void RunSortingTests(Action<int[]> sortMethod, string sortName)
-        {
-            Parallel.For(0, testArrays.Count, i =>
-            {
-                int[] arrayCopy = (int[])testArrays[i].Clone(); // Клонируем массив для каждой сортировки
-
-                Stopwatch stopwatch = Stopwatch.StartNew();
-                sortMethod(arrayCopy);
-                stopwatch.Stop();
-
-                // Используем синхронизацию для добавления результатов в UI (thread-safe)
-                Invoke((MethodInvoker)delegate
-                {
-                    Console.WriteLine($"Сортировка {sortName} заняла {stopwatch.ElapsedMilliseconds} мс для массива длиной {arrayCopy.Length}.");
-                });
-            });
-        }
-        private void RunSortingTestsWithResult(Action<int[]> sortMethod, string sortName, Dictionary<string, List<long>> sortResults)
-        {
-            // Инициализация списка для хранения результатов времени выполнения
-            var times = new List<long>();
-
-            // Параллельное выполнение тестов
-            Parallel.For(0, testArrays.Count, i =>
-            {
-                // Создание копии массива для сортировки
-                int[] arrayCopy = (int[])testArrays[i].Clone();
-
-                // Измерение времени выполнения алгоритма
-                Stopwatch stopwatch = Stopwatch.StartNew();
-                sortMethod(arrayCopy); // Вызов метода сортировки
-                stopwatch.Stop();
-
-                // Добавление времени выполнения в список
-                lock (times) // Синхронизация для избежания проблем с конкурентным доступом
-                {
-                    times.Add(stopwatch.ElapsedMilliseconds);
-                }
-            });
-
-            // Сохранение собранных результатов в общий словарь
-            lock (sortResults) // Синхронизация при записи в словарь
-            {
-                sortResults[sortName] = times; // Запись времени выполнения для текущего алгоритма
             }
         }
     }
