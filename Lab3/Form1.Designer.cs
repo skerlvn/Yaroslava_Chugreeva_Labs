@@ -28,12 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.comboBoxDataGroup = new System.Windows.Forms.ComboBox();
             this.comboBoxSortGroup = new System.Windows.Forms.ComboBox();
             this.buttonGenerateArrays = new System.Windows.Forms.Button();
             this.buttonRunTests = new System.Windows.Forms.Button();
             this.buttonSaveResults = new System.Windows.Forms.Button();
-            this.zedGraphControl1 = new ZedGraph.ZedGraphControl();
+            this.zedGraphControl = new ZedGraph.ZedGraphControl();
             this.labelDataGroup = new System.Windows.Forms.Label();
             this.labelSortGroup = new System.Windows.Forms.Label();
             this.SuspendLayout();
@@ -95,26 +96,32 @@
             this.buttonSaveResults.UseVisualStyleBackColor = true;
             this.buttonSaveResults.Click += new System.EventHandler(this.buttonSaveResults_Click);
             // 
-            // zedGraphControl1
+            // zedGraphControl
             // 
-            this.zedGraphControl1.Location = new System.Drawing.Point(320, 50);
-            this.zedGraphControl1.Name = "zedGraphControl1";
-            this.zedGraphControl1.ScrollGrace = 0D;
-            this.zedGraphControl1.ScrollMaxX = 0D;
-            this.zedGraphControl1.ScrollMaxY = 0D;
-            this.zedGraphControl1.ScrollMaxY2 = 0D;
-            this.zedGraphControl1.ScrollMinX = 0D;
-            this.zedGraphControl1.ScrollMinY = 0D;
-            this.zedGraphControl1.ScrollMinY2 = 0D;
-            this.zedGraphControl1.Size = new System.Drawing.Size(450, 350);
-            this.zedGraphControl1.TabIndex = 5;
+            this.zedGraphControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.zedGraphControl.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.zedGraphControl.Location = new System.Drawing.Point(320, 13);
+            this.zedGraphControl.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.zedGraphControl.Name = "zedGraphControl";
+            this.zedGraphControl.ScrollGrace = 0D;
+            this.zedGraphControl.ScrollMaxX = 0D;
+            this.zedGraphControl.ScrollMaxY = 0D;
+            this.zedGraphControl.ScrollMaxY2 = 0D;
+            this.zedGraphControl.ScrollMinX = 0D;
+            this.zedGraphControl.ScrollMinY = 0D;
+            this.zedGraphControl.ScrollMinY2 = 0D;
+            this.zedGraphControl.Size = new System.Drawing.Size(467, 424);
+            this.zedGraphControl.TabIndex = 5;
+            this.zedGraphControl.UseExtendedPrintDialog = true;
             // 
             // labelDataGroup
             // 
             this.labelDataGroup.AutoSize = true;
             this.labelDataGroup.Location = new System.Drawing.Point(30, 30);
             this.labelDataGroup.Name = "labelDataGroup";
-            this.labelDataGroup.Size = new System.Drawing.Size(139, 17);
+            this.labelDataGroup.Size = new System.Drawing.Size(167, 16);
             this.labelDataGroup.TabIndex = 6;
             this.labelDataGroup.Text = "Группа тестовых данных";
             // 
@@ -123,7 +130,7 @@
             this.labelSortGroup.AutoSize = true;
             this.labelSortGroup.Location = new System.Drawing.Point(30, 100);
             this.labelSortGroup.Name = "labelSortGroup";
-            this.labelSortGroup.Size = new System.Drawing.Size(142, 17);
+            this.labelSortGroup.Size = new System.Drawing.Size(215, 16);
             this.labelSortGroup.TabIndex = 7;
             this.labelSortGroup.Text = "Группа алгоритмов сортировки";
             // 
@@ -134,7 +141,7 @@
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.labelSortGroup);
             this.Controls.Add(this.labelDataGroup);
-            this.Controls.Add(this.zedGraphControl1);
+            this.Controls.Add(this.zedGraphControl);
             this.Controls.Add(this.buttonSaveResults);
             this.Controls.Add(this.buttonRunTests);
             this.Controls.Add(this.buttonGenerateArrays);
@@ -154,7 +161,7 @@
         private System.Windows.Forms.Button buttonGenerateArrays;
         private System.Windows.Forms.Button buttonRunTests;
         private System.Windows.Forms.Button buttonSaveResults;
-        private ZedGraph.ZedGraphControl zedGraphControl1;
+        private ZedGraph.ZedGraphControl zedGraphControl;
         private System.Windows.Forms.Label labelDataGroup;
         private System.Windows.Forms.Label labelSortGroup;
     }
