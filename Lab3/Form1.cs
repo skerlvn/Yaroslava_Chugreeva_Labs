@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -30,7 +29,7 @@ namespace Lab3
             sortResults = new Dictionary<string, List<double>>();
 
             int selectedGroupIndex = comboBoxSortGroup.SelectedIndex;
-     
+
 
             switch (selectedGroupIndex)
             {
@@ -79,7 +78,7 @@ namespace Lab3
             {
                 double totalTime = 0;
 
-                
+
                 Parallel.For(0, numRuns, run =>
                 {
 
@@ -90,16 +89,12 @@ namespace Lab3
                     stopwatch.Stop();
 
                     totalTime += stopwatch.ElapsedMilliseconds;
-                }
-                
-                );
-                
+                });
 
                 double avgTime = totalTime / numRuns;
                 times.Add(avgTime);
             }
             sortResults[sortName] = times;
-
         }
 
         private void DisplayGraph(Dictionary<string, List<double>> sortResults)
@@ -112,12 +107,12 @@ namespace Lab3
 
             var sizes = testArrays.Select(arr => (double)arr.Length).ToArray();
 
-            var colors = new Color[] 
-            { 
-                Color.Red, 
-                Color.Blue, 
-                Color.Green, 
-                Color.Purple, 
+            var colors = new Color[]
+            {
+                Color.Red,
+                Color.Blue,
+                Color.Green,
+                Color.Purple,
                 Color.Orange,
                 Color.Black,
             };
@@ -228,7 +223,7 @@ namespace Lab3
             for (int i = 0; i < testArrays.Count; i++)
             {
                 int[] arrayCopy = (int[])testArrays[i].Clone();
-                sortMethod(arrayCopy);  
+                sortMethod(arrayCopy);
 
                 writer.WriteLine($"Отсортированный массив {i + 1}: {string.Join(", ", arrayCopy)}");
             }
@@ -244,7 +239,7 @@ namespace Lab3
                 sizes.Add((int)Math.Pow(10.0, i));
 
             return sizes.ToArray();
-            
+
         }
         private void GenerateRandomArrays()
         {
