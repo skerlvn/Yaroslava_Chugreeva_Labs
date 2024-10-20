@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 
-
-
-
 class Program
 {
     public static void Main(string[] args)
@@ -19,7 +16,7 @@ class Program
         myList.Add(7);
 
         int[] subList = myList.SubList(2, 5).ToArray();
-        Console.WriteLine("Прямой диапазон (4 to 6): " + string.Join(", ", subList));
+        Console.WriteLine("Прямой диапазон (2 до 5): " + string.Join(", ", subList));
 
         myList = new MyArrayList<int>();
         myList.Add(1);
